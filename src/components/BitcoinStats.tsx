@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target, DollarSign, TrendingUp, AlertCircle, Activity, Zap, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface BlockData {
   height: number;
@@ -41,6 +42,11 @@ interface FearGreedData {
   }];
 }
 
+interface PriceHistory {
+  timestamp: number;
+  price: number;
+}
+
 interface BlockchainStats {
   market_price_usd: number;
   hash_rate: number;
@@ -57,6 +63,7 @@ const BitcoinStats = () => {
   const [bitcoinPrice, setBitcoinPrice] = useState<BitcoinPrice | null>(null);
   const [fearGreedIndex, setFearGreedIndex] = useState<FearGreedData | null>(null);
   const [blockchainStats, setBlockchainStats] = useState<BlockchainStats | null>(null);
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -95,12 +102,27 @@ const BitcoinStats = () => {
       const blockchainStatsResponse = await fetch('https://api.blockchain.info/stats');
       const blockchainStatsData = await blockchainStatsResponse.json();
       console.log('Blockchain stats:', blockchainStatsData);
+
+      // Fetch 7-day price history from CoinGecko (free API)
+      const historyResponse = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily');
+      const historyData = await historyResponse.json();
+      console.log('Price history:', historyData);
       
       setBlockData(blockDetails);
       setMemPoolStats(mempoolData);
       setBitcoinPrice(priceData);
       setFearGreedIndex(fearGreedData);
       setBlockchainStats(blockchainStatsData);
+      
+      // Process price history data
+      if (historyData.prices) {
+        const processedHistory = historyData.prices.map((price: [number, number]) => ({
+          timestamp: price[0],
+          price: price[1]
+        }));
+        setPriceHistory(processedHistory);
+      }
+      
       setLastUpdated(new Date());
       
     } catch (error) {
@@ -240,93 +262,122 @@ const BitcoinStats = () => {
       {/* Market Data Section */}
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-foreground">Market Data</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Bitcoin Price */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Bitcoin Price</CardTitle>
-            <DollarSign className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">
-              ${bitcoinPrice ? formatNumber(bitcoinPrice.bitcoin.usd) : '-'}
-            </div>
-            {bitcoinPrice && (
-              <div className={`text-sm font-medium mt-1 flex items-center space-x-1 ${
-                bitcoinPrice.bitcoin.usd_24h_change >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <TrendingUp className={`h-3 w-3 ${bitcoinPrice.bitcoin.usd_24h_change < 0 ? 'rotate-180' : ''}`} />
-                <span>
-                  {bitcoinPrice.bitcoin.usd_24h_change >= 0 ? '+' : ''}{bitcoinPrice.bitcoin.usd_24h_change.toFixed(2)}% (24h)
-                </span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Bitcoin Price Chart */}
+          <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-foreground">Bitcoin Price Chart (7 Days)</CardTitle>
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-3xl font-bold text-primary">
+                  ${bitcoinPrice ? formatNumber(bitcoinPrice.bitcoin.usd) : '-'}
+                </div>
+                {bitcoinPrice && (
+                  <div className={`text-sm font-medium flex items-center space-x-1 ${
+                    bitcoinPrice.bitcoin.usd_24h_change >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <TrendingUp className={`h-3 w-3 ${bitcoinPrice.bitcoin.usd_24h_change < 0 ? 'rotate-180' : ''}`} />
+                    <span>
+                      {bitcoinPrice.bitcoin.usd_24h_change >= 0 ? '+' : ''}{bitcoinPrice.bitcoin.usd_24h_change.toFixed(2)}% (24h)
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={priceHistory}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="timestamp"
+                      tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      className="text-xs"
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                      className="text-xs"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="price" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, fill: "hsl(var(--primary))" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Fear & Greed Index */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fear & Greed</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${fearGreedIndex ? getFearGreedColor(parseInt(fearGreedIndex.data[0].value)) : 'text-primary'}`}>
-              {fearGreedIndex ? fearGreedIndex.data[0].value : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
-            </p>
-          </CardContent>
-        </Card>
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Fear & Greed Index */}
+            <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Fear & Greed</CardTitle>
+                <Activity className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-3xl font-bold ${fearGreedIndex ? getFearGreedColor(parseInt(fearGreedIndex.data[0].value)) : 'text-primary'}`}>
+                  {fearGreedIndex ? fearGreedIndex.data[0].value : '-'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* MVRV Approximation */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">MVRV Ratio</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getMVRVColor(calculateMVRV())}`}>
-              {calculateMVRV().toFixed(1)}
-            </div>
-            <div className="mt-2 space-y-1">
-              <div className={`text-xs font-medium ${getMVRVColor(calculateMVRV())}`}>
-                {getMVRVLabel(calculateMVRV())}
-              </div>
-              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
-                <div 
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    calculateMVRV() >= 3.7 ? 'bg-red-500' :
-                    calculateMVRV() >= 2.8 ? 'bg-orange-500' :
-                    calculateMVRV() >= 2.0 ? 'bg-yellow-500' : 'bg-green-500'
-                  }`}
-                  style={{ width: `${getMVRVProgress(calculateMVRV())}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>0</span>
-                <span className="text-orange-600">2.8</span>
-                <span className="text-red-600">3.7</span>
-                <span>5+</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            {/* MVRV Approximation */}
+            <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">MVRV Ratio</CardTitle>
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${getMVRVColor(calculateMVRV())}`}>
+                  {calculateMVRV().toFixed(1)}
+                </div>
+                <div className="mt-2 space-y-1">
+                  <div className={`text-xs font-medium ${getMVRVColor(calculateMVRV())}`}>
+                    {getMVRVLabel(calculateMVRV())}
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-1.5 mt-1">
+                    <div 
+                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                        calculateMVRV() >= 3.7 ? 'bg-red-500' :
+                        calculateMVRV() >= 2.8 ? 'bg-orange-500' :
+                        calculateMVRV() >= 2.0 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${getMVRVProgress(calculateMVRV())}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>0</span>
+                    <span className="text-orange-600">2.8</span>
+                    <span className="text-red-600">3.7</span>
+                    <span>5+</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Network Activity */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Network Activity</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-primary">
-              {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Daily transaction volume</p>
-          </CardContent>
-        </Card>
+            {/* Network Activity */}
+            <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Network Activity</CardTitle>
+                <Activity className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg font-bold text-primary">
+                  {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Daily transaction volume</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
