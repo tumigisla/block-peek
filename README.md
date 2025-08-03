@@ -4,7 +4,7 @@ A real-time Bitcoin network monitoring dashboard that provides comprehensive ins
 
 ## Live Demo
 
-🚀 **[View Live Application](https://app.lovable.dev/projects/de87270f-13ae-4d98-8e68-1abf942e6a94)**
+🚀 **[View Live Application](https://bitcoin.tgislason.cfd)**
 
 ## What does this app do?
 
