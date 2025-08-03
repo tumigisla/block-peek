@@ -178,6 +178,56 @@ const BitcoinStats = () => {
     return percentage;
   };
 
+  const getPriceContext = (price: number) => {
+    // Bitcoin price reference points (approximate)
+    if (price > 100000) return { label: 'Near ATH', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/20' };
+    if (price > 80000) return { label: 'Very High', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (price > 50000) return { label: 'High', color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (price > 30000) return { label: 'Normal', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
+    if (price > 20000) return { label: 'Low', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
+    return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
+  };
+
+  const getHashRateContext = (hashRate: number) => {
+    // Hash rate in TH/s - reference points
+    const thRate = hashRate / 1e12;
+    if (thRate > 800) return { label: 'ATH Range', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (thRate > 600) return { label: 'Very High', color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (thRate > 400) return { label: 'High', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
+    if (thRate > 200) return { label: 'Normal', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-900/20' };
+    if (thRate > 100) return { label: 'Low', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
+    return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
+  };
+
+  const getMempoolContext = (count: number) => {
+    // Mempool transaction count reference points
+    if (count > 300000) return { label: 'Highly Congested', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
+    if (count > 150000) return { label: 'Congested', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/20' };
+    if (count > 50000) return { label: 'Busy', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
+    if (count > 10000) return { label: 'Normal', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (count > 1000) return { label: 'Low Activity', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
+    return { label: 'Very Quiet', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-900/20' };
+  };
+
+  const getVolumeContext = (volumeB: number) => {
+    // Daily transaction volume in billions
+    if (volumeB > 50) return { label: 'Very High', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (volumeB > 20) return { label: 'High', color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (volumeB > 10) return { label: 'Normal', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
+    if (volumeB > 5) return { label: 'Low', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
+    return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
+  };
+
+  const getBlockSizeContext = (sizeBytes: number) => {
+    // Block size reference points
+    const sizeMB = sizeBytes / (1024 * 1024);
+    if (sizeMB > 3.5) return { label: 'Nearly Full', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
+    if (sizeMB > 2.5) return { label: 'High Usage', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/20' };
+    if (sizeMB > 1.5) return { label: 'Normal', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
+    if (sizeMB > 0.5) return { label: 'Low Usage', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
+    return { label: 'Very Low', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-900/20' };
+  };
+
   const formatBlockHash = (hash: string) => {
     // Show first 8 and last 8 characters for better readability
     if (hash.length > 16) {
@@ -241,7 +291,7 @@ const BitcoinStats = () => {
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-foreground">Market Data</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Bitcoin Price */}
+         {/* Bitcoin Price */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Bitcoin Price</CardTitle>
@@ -252,13 +302,18 @@ const BitcoinStats = () => {
               ${bitcoinPrice ? formatNumber(bitcoinPrice.bitcoin.usd) : '-'}
             </div>
             {bitcoinPrice && (
-              <div className={`text-sm font-medium mt-1 flex items-center space-x-1 ${
-                bitcoinPrice.bitcoin.usd_24h_change >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <TrendingUp className={`h-3 w-3 ${bitcoinPrice.bitcoin.usd_24h_change < 0 ? 'rotate-180' : ''}`} />
-                <span>
-                  {bitcoinPrice.bitcoin.usd_24h_change >= 0 ? '+' : ''}{bitcoinPrice.bitcoin.usd_24h_change.toFixed(2)}% (24h)
-                </span>
+              <div className="mt-2 space-y-1">
+                <div className={`text-sm font-medium flex items-center space-x-1 ${
+                  bitcoinPrice.bitcoin.usd_24h_change >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  <TrendingUp className={`h-3 w-3 ${bitcoinPrice.bitcoin.usd_24h_change < 0 ? 'rotate-180' : ''}`} />
+                  <span>
+                    {bitcoinPrice.bitcoin.usd_24h_change >= 0 ? '+' : ''}{bitcoinPrice.bitcoin.usd_24h_change.toFixed(2)}% (24h)
+                  </span>
+                </div>
+                <Badge className={`text-xs ${getPriceContext(bitcoinPrice.bitcoin.usd).bgColor} ${getPriceContext(bitcoinPrice.bitcoin.usd).color} border-0`}>
+                  {getPriceContext(bitcoinPrice.bitcoin.usd).label}
+                </Badge>
               </div>
             )}
           </CardContent>
@@ -324,7 +379,14 @@ const BitcoinStats = () => {
             <div className="text-lg font-bold text-primary">
               {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Daily transaction volume</p>
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground">Daily transaction volume</p>
+              {blockchainStats && (
+                <Badge className={`text-xs mt-1 ${getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).bgColor} ${getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).color} border-0`}>
+                  {getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).label}
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
         </div>
@@ -389,7 +451,7 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Block Size */}
+         {/* Block Size */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Block Size</CardTitle>
@@ -397,7 +459,14 @@ const BitcoinStats = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{blockData ? formatBytes(blockData.size) : '-'}</div>
-            <p className="text-xs text-muted-foreground mt-1">Block data size</p>
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground">Block data size</p>
+              {blockData && (
+                <Badge className={`text-xs mt-1 ${getBlockSizeContext(blockData.size).bgColor} ${getBlockSizeContext(blockData.size).color} border-0`}>
+                  {getBlockSizeContext(blockData.size).label}
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -409,7 +478,12 @@ const BitcoinStats = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{blockData ? formatDifficulty(blockData.difficulty) : '-'}</div>
-            <p className="text-xs text-muted-foreground mt-1">Mining difficulty</p>
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground">Mining difficulty</p>
+              <Badge className="text-xs mt-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 border-0">
+                Adjusts every 2016 blocks
+              </Badge>
+            </div>
           </CardContent>
         </Card>
 
@@ -423,7 +497,14 @@ const BitcoinStats = () => {
             <div className="text-2xl font-bold text-primary">
               {blockchainStats ? formatHashRate(blockchainStats.hash_rate) : '-'}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Network security</p>
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground">Network security</p>
+              {blockchainStats && (
+                <Badge className={`text-xs mt-1 ${getHashRateContext(blockchainStats.hash_rate).bgColor} ${getHashRateContext(blockchainStats.hash_rate).color} border-0`}>
+                  {getHashRateContext(blockchainStats.hash_rate).label}
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -451,7 +532,14 @@ const BitcoinStats = () => {
             <div className="text-2xl font-bold text-primary">
               {memPoolStats ? formatNumber(memPoolStats.count) : '-'}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Pending transactions</p>
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground">Pending transactions</p>
+              {memPoolStats && (
+                <Badge className={`text-xs mt-1 ${getMempoolContext(memPoolStats.count).bgColor} ${getMempoolContext(memPoolStats.count).color} border-0`}>
+                  {getMempoolContext(memPoolStats.count).label}
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
         </div>
