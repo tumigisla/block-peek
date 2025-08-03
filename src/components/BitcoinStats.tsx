@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target, DollarSign, TrendingUp, AlertCircle, Activity, Zap } from "lucide-react";
+import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target, DollarSign, TrendingUp, AlertCircle, Activity, Zap, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface BlockData {
@@ -58,6 +58,7 @@ const BitcoinStats = () => {
   const [fearGreedIndex, setFearGreedIndex] = useState<FearGreedData | null>(null);
   const [blockchainStats, setBlockchainStats] = useState<BlockchainStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copiedHash, setCopiedHash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
 
@@ -173,6 +174,32 @@ const BitcoinStats = () => {
     const maxScale = 5;
     const percentage = Math.min((value / maxScale) * 100, 100);
     return percentage;
+  };
+
+  const formatBlockHash = (hash: string) => {
+    // Show first 8 and last 8 characters for better readability
+    if (hash.length > 16) {
+      return `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}`;
+    }
+    return hash;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedHash(true);
+      setTimeout(() => setCopiedHash(false), 2000);
+      toast({
+        title: "Copied!",
+        description: "Block hash copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Unable to copy to clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatTime = (timestamp: number) => {
@@ -325,9 +352,24 @@ const BitcoinStats = () => {
             <Hash className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-mono break-all text-foreground">
-              {blockData?.id ? `${blockData.id.substring(0, 16)}...` : 
-               blockData?.hash ? `${blockData.hash.substring(0, 16)}...` : '-'}
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-mono break-all text-foreground flex-1 mr-2">
+                {blockData?.id ? formatBlockHash(blockData.id) : 
+                 blockData?.hash ? formatBlockHash(blockData.hash) : '-'}
+              </div>
+              {(blockData?.id || blockData?.hash) && (
+                <button
+                  onClick={() => copyToClipboard(blockData?.id || blockData?.hash || '')}
+                  className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors"
+                  title="Copy full hash"
+                >
+                  {copiedHash ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  )}
+                </button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Block identifier</p>
           </CardContent>
