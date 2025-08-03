@@ -1,73 +1,50 @@
-# Welcome to your Lovable project
+# Block Peek
 
-## Project info
+A real-time Bitcoin network monitoring dashboard that provides comprehensive insights into the Bitcoin blockchain.
 
-**URL**: https://lovable.dev/projects/de87270f-13ae-4d98-8e68-1abf942e6a94
+## Live Demo
 
-## How can I edit this code?
+🚀 **[View Live Application](https://app.lovable.dev/projects/de87270f-13ae-4d98-8e68-1abf942e6a94)**
 
-There are several ways of editing your application.
+## What does this app do?
 
-**Use Lovable**
+Block Peek displays live Bitcoin network statistics and market data, including:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/de87270f-13ae-4d98-8e68-1abf942e6a94) and start prompting.
+- **Market Data**: Current Bitcoin price, 24h price changes, Fear & Greed Index
+- **Network Metrics**: Latest block height, block hash, transaction count, block size
+- **Mining Stats**: Network difficulty, hash rate, MVRV ratio
+- **Mempool Information**: Pending transactions and network activity
 
-Changes made via Lovable will be committed automatically to this repo.
+## Data Sources
 
-**Use your preferred IDE**
+This application fetches data from several free, public APIs:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **[Mempool.space](https://mempool.space)** - Latest block data and mempool statistics
+- **[Blockchain.info](https://blockchain.info)** - Network hash rate and blockchain metrics  
+- **[CoinGecko](https://coingecko.com)** - Bitcoin price and market data
+- **[Alternative.me](https://alternative.me)** - Fear & Greed Index
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Technologies Used
 
-Follow these steps:
+- **React** with TypeScript
+- **Tailwind CSS** for styling
+- **shadcn/ui** for components
+- **Vite** for build tooling
+- **React Query** for data fetching
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+## Development
+
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## License
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/de87270f-13ae-4d98-8e68-1abf942e6a94) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is open source and available under the MIT License.
