@@ -35,10 +35,10 @@ const BitcoinStats = () => {
       setLoading(true);
       
       // Fetch latest block data from mempool.space API
-      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/height');
-      const blockHeight = await blockResponse.json();
+      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/hash');
+      const blockHash = await blockResponse.text();
       
-      const blockDetailsResponse = await fetch(`https://mempool.space/api/block/${blockHeight}`);
+      const blockDetailsResponse = await fetch(`https://mempool.space/api/block/${blockHash}`);
       const blockDetails = await blockDetailsResponse.json();
       
       // Fetch mempool statistics
