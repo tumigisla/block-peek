@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target } from "lucide-react";
+import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface BlockData {
@@ -25,9 +25,17 @@ interface MemPoolStats {
   total_fee: number;
 }
 
+interface BitcoinPrice {
+  bitcoin: {
+    usd: number;
+    usd_24h_change: number;
+  };
+}
+
 const BitcoinStats = () => {
   const [blockData, setBlockData] = useState<BlockData | null>(null);
   const [memPoolStats, setMemPoolStats] = useState<MemPoolStats | null>(null);
+  const [bitcoinPrice, setBitcoinPrice] = useState<BitcoinPrice | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
@@ -51,8 +59,14 @@ const BitcoinStats = () => {
       const mempoolData = await mempoolResponse.json();
       console.log('Mempool data:', mempoolData);
       
+      // Fetch Bitcoin price from CoinGecko (free API)
+      const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+      const priceData = await priceResponse.json();
+      console.log('Price data:', priceData);
+      
       setBlockData(blockDetails);
       setMemPoolStats(mempoolData);
+      setBitcoinPrice(priceData);
       setLastUpdated(new Date());
       
     } catch (error) {
@@ -123,7 +137,29 @@ const BitcoinStats = () => {
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Bitcoin Price */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Bitcoin Price</CardTitle>
+            <DollarSign className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">
+              ${bitcoinPrice ? formatNumber(bitcoinPrice.bitcoin.usd) : '-'}
+            </div>
+            {bitcoinPrice && (
+              <div className={`text-sm font-medium mt-1 flex items-center space-x-1 ${
+                bitcoinPrice.bitcoin.usd_24h_change >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                <TrendingUp className={`h-3 w-3 ${bitcoinPrice.bitcoin.usd_24h_change < 0 ? 'rotate-180' : ''}`} />
+                <span>
+                  {bitcoinPrice.bitcoin.usd_24h_change >= 0 ? '+' : ''}{bitcoinPrice.bitcoin.usd_24h_change.toFixed(2)}% (24h)
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         {/* Block Height */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -229,6 +265,64 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Advanced Metrics Notice */}
+      <Card className="bg-gradient-card border-border shadow-card animate-slide-up border-yellow-200 dark:border-yellow-800">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-yellow-700 dark:text-yellow-300">
+            <AlertCircle className="h-5 w-5" />
+            <span>Advanced On-Chain Metrics</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              The following advanced metrics require paid API access:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Available Metrics:</h4>
+                <ul className="text-xs space-y-1 text-muted-foreground">
+                  <li>• MVRV Ratio (Market Value to Realized Value)</li>
+                  <li>• NUPL (Net Unrealized Profit/Loss)</li>
+                  <li>• SOPR Ratio (Short/Long Term Holder)</li>
+                  <li>• Exchange Whale Ratio</li>
+                  <li>• Fear & Greed Index</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Recommended Providers:</h4>
+                <div className="space-y-1">
+                  <a 
+                    href="https://cryptoquant.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="block text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                  >
+                    → CryptoQuant (from $29/month)
+                  </a>
+                  <a 
+                    href="https://glassnode.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="block text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                  >
+                    → Glassnode (from $19/month)
+                  </a>
+                  <a 
+                    href="https://www.bitcoinmagazinepro.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="block text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                  >
+                    → Bitcoin Magazine Pro (from $29/month)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
