@@ -138,7 +138,7 @@ const BitcoinStats = () => {
           </CardHeader>
           <CardContent>
             <div className="text-sm font-mono break-all text-foreground">
-              {blockData ? `${blockData.hash.substring(0, 16)}...` : '-'}
+              {blockData?.hash ? `${blockData.hash.substring(0, 16)}...` : '-'}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Block identifier</p>
           </CardContent>
