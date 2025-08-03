@@ -6,8 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface BlockData {
   height: number;
-  hash: string;
+  hash?: string;
+  id?: string;
   time: number;
+  timestamp: number;
   tx_count: number;
   size: number;
   weight: number;
@@ -34,16 +36,20 @@ const BitcoinStats = () => {
     try {
       setLoading(true);
       
-      // Fetch latest block data from mempool.space API
-      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/hash');
-      const blockHash = await blockResponse.text();
+      // Fetch latest block data directly from the blocks endpoint
+      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/height');
+      const blockHeight = await blockResponse.text();
+      console.log('Block height:', blockHeight);
       
-      const blockDetailsResponse = await fetch(`https://mempool.space/api/block/${blockHash}`);
+      // Fetch block details using the height
+      const blockDetailsResponse = await fetch(`https://mempool.space/api/block-height/${blockHeight}`);
       const blockDetails = await blockDetailsResponse.json();
+      console.log('Block details:', blockDetails);
       
       // Fetch mempool statistics
       const mempoolResponse = await fetch('https://mempool.space/api/mempool');
       const mempoolData = await mempoolResponse.json();
+      console.log('Mempool data:', mempoolData);
       
       setBlockData(blockDetails);
       setMemPoolStats(mempoolData);
@@ -138,7 +144,8 @@ const BitcoinStats = () => {
           </CardHeader>
           <CardContent>
             <div className="text-sm font-mono break-all text-foreground">
-              {blockData?.hash ? `${blockData.hash.substring(0, 16)}...` : '-'}
+              {blockData?.id ? `${blockData.id.substring(0, 16)}...` : 
+               blockData?.hash ? `${blockData.hash.substring(0, 16)}...` : '-'}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Block identifier</p>
           </CardContent>
@@ -187,7 +194,9 @@ const BitcoinStats = () => {
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium text-foreground">{blockData ? formatTime(blockData.time) : '-'}</div>
+            <div className="text-sm font-medium text-foreground">
+              {blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
           </CardContent>
         </Card>
