@@ -36,13 +36,13 @@ const BitcoinStats = () => {
     try {
       setLoading(true);
       
-      // Fetch latest block data directly from the blocks endpoint
-      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/height');
-      const blockHeight = await blockResponse.text();
-      console.log('Block height:', blockHeight);
+      // Fetch latest block hash
+      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/hash');
+      const blockHash = await blockResponse.text();
+      console.log('Block hash:', blockHash);
       
-      // Fetch block details using the height
-      const blockDetailsResponse = await fetch(`https://mempool.space/api/block-height/${blockHeight}`);
+      // Fetch block details using the hash
+      const blockDetailsResponse = await fetch(`https://mempool.space/api/block/${blockHash}`);
       const blockDetails = await blockDetailsResponse.json();
       console.log('Block details:', blockDetails);
       
