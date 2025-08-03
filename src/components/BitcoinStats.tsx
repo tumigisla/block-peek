@@ -296,8 +296,10 @@ const BitcoinStats = () => {
                       className="text-xs"
                     />
                     <YAxis 
-                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                      domain={['dataMin - 1000', 'dataMax + 1000']}
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
                       className="text-xs"
+                      tick={{ fontSize: 11 }}
                     />
                     <Line 
                       type="monotone" 
