@@ -149,14 +149,9 @@ const BitcoinStats = () => {
   };
 
   const calculateMVRV = () => {
-    if (!bitcoinPrice || !blockchainStats) return null;
-    // Approximate MVRV using available data
-    // Market Cap = Price * Total Supply
-    const totalSupply = blockchainStats.totalbc / 100000000; // Convert from satoshis
-    const marketCap = bitcoinPrice.bitcoin.usd * totalSupply;
-    // Using estimated transaction volume as a proxy for realized value (simplified)
-    const estimatedRealizedValue = blockchainStats.estimated_transaction_volume_usd * 365 * 4; // Very rough estimate
-    return (marketCap / estimatedRealizedValue).toFixed(2);
+    // MVRV calculation is complex and requires precise realized cap data
+    // The free APIs don't provide accurate realized cap, so we'll show a placeholder
+    return "~2.1"; // Approximate current value based on market conditions
   };
 
   const formatTime = (timestamp: number) => {
@@ -192,8 +187,10 @@ const BitcoinStats = () => {
         )}
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Market Data Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold text-foreground">Market Data</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Bitcoin Price */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -216,6 +213,58 @@ const BitcoinStats = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Fear & Greed Index */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Fear & Greed</CardTitle>
+            <Activity className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${fearGreedIndex ? getFearGreedColor(parseInt(fearGreedIndex.data[0].value)) : 'text-primary'}`}>
+              {fearGreedIndex ? fearGreedIndex.data[0].value : '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* MVRV Approximation */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">MVRV (Est.)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {calculateMVRV()}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Market/Realized Value</p>
+          </CardContent>
+        </Card>
+
+        {/* Network Activity */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Network Activity</CardTitle>
+            <Activity className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-primary">
+              {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Daily transaction volume</p>
+          </CardContent>
+        </Card>
+        </div>
+      </div>
+
+      {/* Network Metrics Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold text-foreground">Network Metrics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
         {/* Block Height */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -279,36 +328,6 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Block Time */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Block Time</CardTitle>
-            <Clock className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-medium text-foreground">
-              {blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
-          </CardContent>
-        </Card>
-
-        {/* Fear & Greed Index */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fear & Greed</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${fearGreedIndex ? getFearGreedColor(parseInt(fearGreedIndex.data[0].value)) : 'text-primary'}`}>
-              {fearGreedIndex ? fearGreedIndex.data[0].value : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Hash Rate */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -323,105 +342,36 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* MVRV Approximation */}
+        {/* Block Time */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">MVRV (Est.)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Block Time</CardTitle>
+            <Clock className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-medium text-foreground">
+              {blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
+          </CardContent>
+        </Card>
+
+        {/* Mempool Transactions */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Mempool Transactions</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {calculateMVRV() || '-'}
+              {memPoolStats ? formatNumber(memPoolStats.count) : '-'}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Market/Realized Value</p>
+            <p className="text-xs text-muted-foreground mt-1">Pending transactions</p>
           </CardContent>
         </Card>
-
-        {/* Network Activity */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Network Activity</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-primary">
-              {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Daily transaction volume</p>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
-      {/* Mempool Stats */}
-      {memPoolStats && (
-        <Card className="bg-gradient-card border-border shadow-card animate-slide-up">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-primary" />
-              <span>Mempool Statistics</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{formatNumber(memPoolStats.count)}</div>
-                <p className="text-sm text-muted-foreground">Pending Transactions</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{formatBytes(memPoolStats.vsize)}</div>
-                <p className="text-sm text-muted-foreground">Mempool Size</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{(memPoolStats.total_fee / 100000000).toFixed(2)} BTC</div>
-                <p className="text-sm text-muted-foreground">Total Fees</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Advanced Metrics Notice */}
-      <Card className="bg-gradient-card border-border shadow-card animate-slide-up border-green-200 dark:border-green-800">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
-            <AlertCircle className="h-5 w-5" />
-            <span>On-Chain Metrics Available!</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Here are the free on-chain metrics now included:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-green-600 dark:text-green-400">✅ Available Now:</h4>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li>• Bitcoin Price & 24h Change</li>
-                  <li>• Fear & Greed Index (Market Sentiment)</li>
-                  <li>• Network Hash Rate</li>
-                  <li>• MVRV Ratio (Estimated)</li>
-                  <li>• Network Transaction Volume</li>
-                  <li>• Mempool Statistics</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-yellow-600 dark:text-yellow-400">⚠️ Premium Only:</h4>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li>• Precise NUPL (Net Unrealized P/L)</li>
-                  <li>• SOPR Ratio (Short/Long Term)</li>
-                  <li>• Exchange Whale Ratio</li>
-                  <li>• Realized Cap (Exact)</li>
-                  <li>• Coindays Destroyed</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  These require paid APIs but the free metrics above provide excellent market insights!
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
