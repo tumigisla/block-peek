@@ -52,6 +52,11 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				bitcoin: {
+					orange: 'hsl(var(--bitcoin-orange))',
+					'orange-dark': 'hsl(var(--bitcoin-orange-dark))',
+					'orange-light': 'hsl(var(--bitcoin-orange-light))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +89,41 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-bitcoin': {
+					'0%, 100%': {
+						opacity: '1',
+						boxShadow: '0 0 0 0 hsl(var(--bitcoin-orange) / 0.4)'
+					},
+					'50%': {
+						opacity: '0.8',
+						boxShadow: '0 0 0 10px hsl(var(--bitcoin-orange) / 0)'
+					}
+				},
+				'slide-up': {
+					from: {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-bitcoin': 'pulse-bitcoin 2s infinite',
+				'slide-up': 'slide-up 0.6s ease-out'
+			},
+			backgroundImage: {
+				'gradient-bitcoin': 'var(--gradient-bitcoin)',
+				'gradient-card': 'var(--gradient-card)'
+			},
+			boxShadow: {
+				'glow-bitcoin': 'var(--glow-bitcoin)',
+				'card': 'var(--shadow-card)'
 			}
 		}
 	},
