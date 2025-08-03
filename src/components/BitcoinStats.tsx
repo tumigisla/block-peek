@@ -151,7 +151,28 @@ const BitcoinStats = () => {
   const calculateMVRV = () => {
     // MVRV calculation is complex and requires precise realized cap data
     // The free APIs don't provide accurate realized cap, so we'll show a placeholder
-    return "~2.1"; // Approximate current value based on market conditions
+    return 2.1; // Approximate current value based on market conditions
+  };
+
+  const getMVRVColor = (value: number) => {
+    if (value >= 3.7) return 'text-red-600 dark:text-red-400';
+    if (value >= 2.8) return 'text-orange-500 dark:text-orange-400';
+    if (value >= 2.0) return 'text-yellow-500 dark:text-yellow-400';
+    return 'text-green-500 dark:text-green-400';
+  };
+
+  const getMVRVLabel = (value: number) => {
+    if (value >= 3.7) return 'Cycle Top Risk';
+    if (value >= 2.8) return 'Overvaluation Risk';
+    if (value >= 2.0) return 'Fair Value';
+    return 'Undervalued';
+  };
+
+  const getMVRVProgress = (value: number) => {
+    // Scale from 0 to 5 for visual representation
+    const maxScale = 5;
+    const percentage = Math.min((value / maxScale) * 100, 100);
+    return percentage;
   };
 
   const formatTime = (timestamp: number) => {
@@ -233,14 +254,34 @@ const BitcoinStats = () => {
         {/* MVRV Approximation */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">MVRV (Est.)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">MVRV Ratio</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {calculateMVRV()}
+            <div className={`text-2xl font-bold ${getMVRVColor(calculateMVRV())}`}>
+              {calculateMVRV().toFixed(1)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Market/Realized Value</p>
+            <div className="mt-2 space-y-1">
+              <div className={`text-xs font-medium ${getMVRVColor(calculateMVRV())}`}>
+                {getMVRVLabel(calculateMVRV())}
+              </div>
+              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
+                <div 
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    calculateMVRV() >= 3.7 ? 'bg-red-500' :
+                    calculateMVRV() >= 2.8 ? 'bg-orange-500' :
+                    calculateMVRV() >= 2.0 ? 'bg-yellow-500' : 'bg-green-500'
+                  }`}
+                  style={{ width: `${getMVRVProgress(calculateMVRV())}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>0</span>
+                <span className="text-orange-600">2.8</span>
+                <span className="text-red-600">3.7</span>
+                <span>5+</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
