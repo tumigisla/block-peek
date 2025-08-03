@@ -138,7 +138,9 @@ const BitcoinStats = () => {
   };
 
   const formatHashRate = (hashRate: number) => {
-    return (hashRate / 1e18).toFixed(2) + ' EH/s';
+    // Convert from H/s to EH/s (divide by 1e18)
+    // But blockchain.info seems to return in a different unit, so let's convert properly
+    return (hashRate / 1e12).toFixed(1) + ' TH/s';
   };
 
   const getFearGreedColor = (value: number) => {
