@@ -130,8 +130,8 @@ const BitcoinStats = () => {
 
   useEffect(() => {
     fetchBitcoinData();
-    // Update every 30 seconds
-    const interval = setInterval(fetchBitcoinData, 30000);
+    // Update every 2 minutes
+    const interval = setInterval(fetchBitcoinData, 120000);
     return () => clearInterval(interval);
   }, []);
 
