@@ -190,6 +190,15 @@ const BitcoinStats = () => {
     return percentage;
   };
 
+  const getBlockReward = (blockHeight: number) => {
+    // Bitcoin halving occurs every 210,000 blocks
+    // Initial reward was 50 BTC, halves each period
+    const halvingInterval = 210000;
+    const halvings = Math.floor(blockHeight / halvingInterval);
+    const initialReward = 50;
+    return initialReward / Math.pow(2, halvings);
+  };
+
   const getPriceContext = (price: number) => {
     // Bitcoin price reference points (approximate)
     if (price > 100000) return { label: 'Near ATH', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/20' };
@@ -499,6 +508,21 @@ const BitcoinStats = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
             <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
+          </CardContent>
+        </Card>
+
+        {/* Block Reward */}
+        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Block Reward</CardTitle>
+            <Bitcoin className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {blockData ? `${getBlockReward(blockData.height)} BTC` : '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Mining reward for this block</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">Calculated from block height</p>
           </CardContent>
         </Card>
 
