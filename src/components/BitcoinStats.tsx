@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Bitcoin, Hash, Clock, Users, Database, Target, DollarSign, TrendingUp, AlertCircle, Activity, Zap, Copy, Check } from "lucide-react";
+import { Loader2, Bitcoin, Hash, Clock, Users, Database, DollarSign, TrendingUp, AlertCircle, Activity, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface BlockData {
@@ -133,15 +133,6 @@ const BitcoinStats = () => {
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const formatDifficulty = (difficulty: number) => {
-    return (difficulty / 1e12).toFixed(2) + 'T';
-  };
-
-  const formatHashRate = (hashRate: number) => {
-    // Convert from H/s to EH/s (divide by 1e18)
-    // But blockchain.info seems to return in a different unit, so let's convert properly
-    return (hashRate / 1e12).toFixed(1) + ' TH/s';
-  };
 
   const getFearGreedColor = (value: number) => {
     if (value <= 20) return 'text-red-600';
@@ -188,35 +179,6 @@ const BitcoinStats = () => {
     return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
   };
 
-  const getHashRateContext = (hashRate: number) => {
-    // Hash rate in TH/s - reference points
-    const thRate = hashRate / 1e12;
-    if (thRate > 800) return { label: 'ATH Range', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
-    if (thRate > 600) return { label: 'Very High', color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/20' };
-    if (thRate > 400) return { label: 'High', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
-    if (thRate > 200) return { label: 'Normal', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-900/20' };
-    if (thRate > 100) return { label: 'Low', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
-    return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
-  };
-
-  const getMempoolContext = (count: number) => {
-    // Mempool transaction count reference points
-    if (count > 300000) return { label: 'Highly Congested', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
-    if (count > 150000) return { label: 'Congested', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/20' };
-    if (count > 50000) return { label: 'Busy', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
-    if (count > 10000) return { label: 'Normal', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
-    if (count > 1000) return { label: 'Low Activity', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
-    return { label: 'Very Quiet', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-900/20' };
-  };
-
-  const getVolumeContext = (volumeB: number) => {
-    // Daily transaction volume in billions
-    if (volumeB > 50) return { label: 'Very High', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/20' };
-    if (volumeB > 20) return { label: 'High', color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/20' };
-    if (volumeB > 10) return { label: 'Normal', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/20' };
-    if (volumeB > 5) return { label: 'Low', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' };
-    return { label: 'Very Low', color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/20' };
-  };
 
   const getBlockSizeContext = (sizeBytes: number) => {
     // Block size reference points
@@ -290,7 +252,7 @@ const BitcoinStats = () => {
       {/* Market Data Section */}
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-foreground">Market Data</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
          {/* Bitcoin Price */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -369,33 +331,13 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Network Activity */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Network Activity</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-primary">
-              {blockchainStats ? `$${(blockchainStats.estimated_transaction_volume_usd / 1000000000).toFixed(1)}B` : '-'}
-            </div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Daily transaction volume</p>
-              {blockchainStats && (
-                <Badge className={`text-xs mt-1 ${getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).bgColor} ${getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).color} border-0`}>
-                  {getVolumeContext(blockchainStats.estimated_transaction_volume_usd / 1000000000).label}
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
         </div>
       </div>
 
       {/* Network Metrics Section */}
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-foreground">Network Metrics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Block Height */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
@@ -470,43 +412,6 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Difficulty */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Difficulty</CardTitle>
-            <Target className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{blockData ? formatDifficulty(blockData.difficulty) : '-'}</div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Mining difficulty</p>
-              <Badge className="text-xs mt-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 border-0">
-                Adjusts every 2016 blocks
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Hash Rate */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Hash Rate</CardTitle>
-            <Zap className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {blockchainStats ? formatHashRate(blockchainStats.hash_rate) : '-'}
-            </div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Network security</p>
-              {blockchainStats && (
-                <Badge className={`text-xs mt-1 ${getHashRateContext(blockchainStats.hash_rate).bgColor} ${getHashRateContext(blockchainStats.hash_rate).color} border-0`}>
-                  {getHashRateContext(blockchainStats.hash_rate).label}
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Block Time */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
@@ -522,26 +427,6 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Mempool Transactions */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Mempool Transactions</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {memPoolStats ? formatNumber(memPoolStats.count) : '-'}
-            </div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Pending transactions</p>
-              {memPoolStats && (
-                <Badge className={`text-xs mt-1 ${getMempoolContext(memPoolStats.count).bgColor} ${getMempoolContext(memPoolStats.count).color} border-0`}>
-                  {getMempoolContext(memPoolStats.count).label}
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
         </div>
       </div>
 
