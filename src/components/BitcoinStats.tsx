@@ -42,8 +42,9 @@ interface FearGreedData {
 }
 
 interface MvrvData {
-  date: string;
-  mvrv: number;
+  d: string;
+  unixTs: string;
+  mvrv: string;
 }
 
 interface BlockchainStats {
@@ -112,7 +113,7 @@ const BitcoinStats = () => {
       setBitcoinPrice(priceData);
       setFearGreedIndex(fearGreedData);
       setBlockchainStats(blockchainStatsData);
-      setMvrvData(mvrvDataResponse.length > 0 ? mvrvDataResponse[0] : null);
+      setMvrvData(mvrvDataResponse);
       setLastUpdated(new Date());
       
     } catch (error) {
@@ -155,8 +156,8 @@ const BitcoinStats = () => {
   };
 
   const calculateMVRV = () => {
-    // Use real MVRV data from API
-    return mvrvData ? mvrvData.mvrv : 2.1; // Fallback to 2.1 if no data
+    // Use real MVRV data from API, convert string to number
+    return mvrvData ? parseFloat(mvrvData.mvrv) : 2.1; // Fallback to 2.1 if no data
   };
 
   const getMVRVColor = (value: number) => {
