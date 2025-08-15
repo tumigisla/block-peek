@@ -307,7 +307,7 @@ const BitcoinStats = () => {
             <p className="text-xs text-muted-foreground mt-1">
               {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
             </p>
-            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Alternative.me</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">Standard F&G Index</p>
           </CardContent>
         </Card>
 
