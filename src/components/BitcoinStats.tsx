@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Bitcoin, Hash, Clock, Users, Database, DollarSign, TrendingUp, AlertCircle, Activity, Copy, Check } from "lucide-react";
+import { Loader2, Bitcoin, Hash, Clock, Users, Database, DollarSign, TrendingUp, AlertCircle, Activity, Copy, Check, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface BlockData {
@@ -246,13 +246,48 @@ const BitcoinStats = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-3">
         <div className="flex items-center justify-center space-x-2 mb-4">
           <Bitcoin className="h-12 w-12 text-primary animate-pulse-bitcoin" />
           <h1 className="text-4xl font-bold bg-gradient-bitcoin bg-clip-text text-transparent">
             Bitcoin Network Monitor
           </h1>
         </div>
+        
+        {/* External Resources */}
+        <div className="flex items-center justify-center space-x-1 mb-4">
+          <span className="text-xs text-muted-foreground mr-2">Resources:</span>
+          <a 
+            href="https://cryptoquant.com/community/dashboard/68781e2f5838ac598078c57d" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-1 text-xs text-muted-foreground hover:text-primary transition-colors duration-200 px-2 py-1 rounded-md hover:bg-muted/50"
+          >
+            <span>CryptoQuant</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+          <span className="text-muted-foreground">•</span>
+          <a 
+            href="https://coinmarketcap.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-1 text-xs text-muted-foreground hover:text-primary transition-colors duration-200 px-2 py-1 rounded-md hover:bg-muted/50"
+          >
+            <span>CoinMarketCap</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+          <span className="text-muted-foreground">•</span>
+          <a 
+            href="https://mempool.space" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-1 text-xs text-muted-foreground hover:text-primary transition-colors duration-200 px-2 py-1 rounded-md hover:bg-muted/50"
+          >
+            <span>Mempool.space</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+
         {lastUpdated && (
           <Badge variant="secondary" className="space-x-1">
             <Clock className="h-3 w-3" />
