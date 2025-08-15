@@ -290,6 +290,7 @@ const BitcoinStats = () => {
                 </Badge>
               </div>
             )}
+            <p className="text-xs text-muted-foreground mt-2 opacity-70">via CoinGecko</p>
           </CardContent>
         </Card>
 
@@ -306,6 +307,7 @@ const BitcoinStats = () => {
             <p className="text-xs text-muted-foreground mt-1">
               {fearGreedIndex ? fearGreedIndex.data[0].value_classification : 'Market sentiment'}
             </p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Alternative.me</p>
           </CardContent>
         </Card>
 
@@ -340,6 +342,7 @@ const BitcoinStats = () => {
                 <span>5+</span>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-2 opacity-70">via Bitcoin-Data.com</p>
           </CardContent>
         </Card>
 
@@ -360,6 +363,7 @@ const BitcoinStats = () => {
           <CardContent>
             <div className="text-3xl font-bold text-primary">{blockData ? formatNumber(blockData.height) : '-'}</div>
             <p className="text-xs text-muted-foreground mt-1">Current blockchain height</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
@@ -390,6 +394,7 @@ const BitcoinStats = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Block identifier</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
@@ -402,6 +407,7 @@ const BitcoinStats = () => {
           <CardContent>
             <div className="text-3xl font-bold text-primary">{blockData ? formatNumber(blockData.tx_count) : '-'}</div>
             <p className="text-xs text-muted-foreground mt-1">In latest block</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
@@ -420,6 +426,7 @@ const BitcoinStats = () => {
                   {getBlockSizeContext(blockData.size).label}
                 </Badge>
               )}
+              <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
             </div>
           </CardContent>
         </Card>
@@ -436,6 +443,7 @@ const BitcoinStats = () => {
               {blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}
             </div>
             <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
