@@ -73,54 +73,63 @@ const BitcoinStats = () => {
     try {
       setLoading(true);
       
-      // Fetch latest block hash
-      const blockResponse = await fetch('https://mempool.space/api/blocks/tip/hash');
-      const blockHash = await blockResponse.text();
-      console.log('Block hash:', blockHash);
-      
-      // Fetch block details using the hash
-      const blockDetailsResponse = await fetch(`https://mempool.space/api/block/${blockHash}`);
-      const blockDetails = await blockDetailsResponse.json();
-      console.log('Block details:', blockDetails);
-      
-      // Fetch mempool statistics
-      const mempoolResponse = await fetch('https://mempool.space/api/mempool');
-      const mempoolData = await mempoolResponse.json();
-      console.log('Mempool data:', mempoolData);
-      
-      // Fetch Bitcoin price from CoinGecko (free API)
-      const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-      const priceData = await priceResponse.json();
-      console.log('Price data:', priceData);
+      // Fetch each API independently with error handling
+      const promises = [
+        // Mempool.space APIs (usually reliable)
+        fetch('https://mempool.space/api/blocks/tip/hash')
+          .then(response => response.text())
+          .then(hash => fetch(`https://mempool.space/api/block/${hash}`))
+          .then(response => response.json())
+          .then(data => setBlockData(data))
+          .catch(err => console.warn('Block data fetch failed:', err)),
+        
+        fetch('https://mempool.space/api/mempool')
+          .then(response => response.json())
+          .then(data => setMemPoolStats(data))
+          .catch(err => console.warn('Mempool stats fetch failed:', err)),
+        
+        // CoinGecko API (may have rate limits)
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true')
+          .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then(data => setBitcoinPrice(data))
+          .catch(err => {
+            console.warn('Bitcoin price fetch failed:', err);
+            setBitcoinPrice(null);
+          }),
 
-      // Fetch Fear & Greed Index (free API)
-      const fearGreedResponse = await fetch('https://api.alternative.me/fng/');
-      const fearGreedData = await fearGreedResponse.json();
-      console.log('Fear & Greed data:', fearGreedData);
+        // Fear & Greed Index
+        fetch('https://api.alternative.me/fng/')
+          .then(response => response.json())
+          .then(data => setFearGreedIndex(data))
+          .catch(err => console.warn('Fear & Greed fetch failed:', err)),
 
-      // Fetch additional blockchain stats (free API)
-      const blockchainStatsResponse = await fetch('https://api.blockchain.info/stats');
-      const blockchainStatsData = await blockchainStatsResponse.json();
-      console.log('Blockchain stats:', blockchainStatsData);
+        // Blockchain.info stats
+        fetch('https://api.blockchain.info/stats')
+          .then(response => response.json())
+          .then(data => setBlockchainStats(data))
+          .catch(err => console.warn('Blockchain stats fetch failed:', err)),
 
-      // Fetch MVRV data (free API)
-      const mvrvResponse = await fetch('https://bitcoin-data.com/v1/mvrv/1');
-      const mvrvDataResponse = await mvrvResponse.json();
-      console.log('MVRV data:', mvrvDataResponse);
-      
-      setBlockData(blockDetails);
-      setMemPoolStats(mempoolData);
-      setBitcoinPrice(priceData);
-      setFearGreedIndex(fearGreedData);
-      setBlockchainStats(blockchainStatsData);
-      setMvrvData(mvrvDataResponse);
+        // MVRV data
+        fetch('https://bitcoin-data.com/v1/mvrv/1')
+          .then(response => response.json())
+          .then(data => setMvrvData(data))
+          .catch(err => {
+            console.warn('MVRV data fetch failed:', err);
+            setMvrvData(null);
+          })
+      ];
+
+      await Promise.allSettled(promises);
       setLastUpdated(new Date());
       
     } catch (error) {
-      console.error('Error fetching Bitcoin data:', error);
+      console.error('Error in fetchBitcoinData:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch Bitcoin data. Please try again.",
+        description: "Some data sources may be unavailable. Showing available data.",
         variant: "destructive",
       });
     } finally {
@@ -157,7 +166,7 @@ const BitcoinStats = () => {
 
   const calculateMVRV = () => {
     // Use real MVRV data from API, convert string to number
-    return mvrvData ? parseFloat(mvrvData.mvrv) : 2.1; // Fallback to 2.1 if no data
+    return mvrvData ? parseFloat(mvrvData.mvrv) : null;
   };
 
   const getMVRVColor = (value: number) => {
@@ -353,31 +362,42 @@ const BitcoinStats = () => {
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${getMVRVColor(calculateMVRV())}`}>
-              {calculateMVRV().toFixed(1)}
-            </div>
-            <div className="mt-2 space-y-1">
-              <div className={`text-xs font-medium ${getMVRVColor(calculateMVRV())}`}>
-                {getMVRVLabel(calculateMVRV())}
+            {calculateMVRV() !== null ? (
+              <>
+                <div className={`text-2xl font-bold ${getMVRVColor(calculateMVRV()!)}`}>
+                  {calculateMVRV()!.toFixed(1)}
+                </div>
+                <div className="mt-2 space-y-1">
+                  <div className={`text-xs font-medium ${getMVRVColor(calculateMVRV()!)}`}>
+                    {getMVRVLabel(calculateMVRV()!)}
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-1.5 mt-1">
+                    <div 
+                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                        calculateMVRV()! >= 3.7 ? 'bg-red-500' :
+                        calculateMVRV()! >= 2.8 ? 'bg-orange-500' :
+                        calculateMVRV()! >= 2.0 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${getMVRVProgress(calculateMVRV()!)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>0</span>
+                    <span className="text-orange-600">2.8</span>
+                    <span className="text-red-600">3.7</span>
+                    <span>5+</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 opacity-70">via Bitcoin-Data.com</p>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-20">
+                <div className="text-center">
+                  <AlertCircle className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                  <div className="text-sm text-muted-foreground">MVRV data unavailable</div>
+                </div>
               </div>
-              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
-                <div 
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    calculateMVRV() >= 3.7 ? 'bg-red-500' :
-                    calculateMVRV() >= 2.8 ? 'bg-orange-500' :
-                    calculateMVRV() >= 2.0 ? 'bg-yellow-500' : 'bg-green-500'
-                  }`}
-                  style={{ width: `${getMVRVProgress(calculateMVRV())}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>0</span>
-                <span className="text-orange-600">2.8</span>
-                <span className="text-red-600">3.7</span>
-                <span>5+</span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 opacity-70">via Bitcoin-Data.com</p>
+            )}
           </CardContent>
         </Card>
 
