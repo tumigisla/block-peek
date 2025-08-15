@@ -273,8 +273,8 @@ const BitcoinStats = () => {
         </div>
         
         {/* External Resources */}
-        <div className="flex items-center justify-center space-x-1 mb-4">
-          <span className="text-xs text-muted-foreground mr-2">Resources:</span>
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+          <span className="text-xs text-muted-foreground">Resources:</span>
           <a 
             href="https://cryptoquant.com/community/dashboard/68781e2f5838ac598078c57d" 
             target="_blank" 
@@ -284,7 +284,7 @@ const BitcoinStats = () => {
             <span>CryptoQuant</span>
             <ExternalLink className="h-3 w-3" />
           </a>
-          <span className="text-muted-foreground">•</span>
+          <span className="text-muted-foreground hidden sm:inline">•</span>
           <a 
             href="https://coinmarketcap.com" 
             target="_blank" 
@@ -294,7 +294,7 @@ const BitcoinStats = () => {
             <span>CoinMarketCap</span>
             <ExternalLink className="h-3 w-3" />
           </a>
-          <span className="text-muted-foreground">•</span>
+          <span className="text-muted-foreground hidden sm:inline">•</span>
           <a 
             href="https://mempool.space" 
             target="_blank" 
