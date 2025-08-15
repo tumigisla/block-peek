@@ -41,6 +41,11 @@ interface FearGreedData {
   }];
 }
 
+interface MvrvData {
+  date: string;
+  mvrv: number;
+}
+
 interface BlockchainStats {
   market_price_usd: number;
   hash_rate: number;
@@ -57,6 +62,7 @@ const BitcoinStats = () => {
   const [bitcoinPrice, setBitcoinPrice] = useState<BitcoinPrice | null>(null);
   const [fearGreedIndex, setFearGreedIndex] = useState<FearGreedData | null>(null);
   const [blockchainStats, setBlockchainStats] = useState<BlockchainStats | null>(null);
+  const [mvrvData, setMvrvData] = useState<MvrvData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -95,12 +101,18 @@ const BitcoinStats = () => {
       const blockchainStatsResponse = await fetch('https://api.blockchain.info/stats');
       const blockchainStatsData = await blockchainStatsResponse.json();
       console.log('Blockchain stats:', blockchainStatsData);
+
+      // Fetch MVRV data (free API)
+      const mvrvResponse = await fetch('https://bitcoin-data.com/v1/mvrv/1');
+      const mvrvDataResponse = await mvrvResponse.json();
+      console.log('MVRV data:', mvrvDataResponse);
       
       setBlockData(blockDetails);
       setMemPoolStats(mempoolData);
       setBitcoinPrice(priceData);
       setFearGreedIndex(fearGreedData);
       setBlockchainStats(blockchainStatsData);
+      setMvrvData(mvrvDataResponse.length > 0 ? mvrvDataResponse[0] : null);
       setLastUpdated(new Date());
       
     } catch (error) {
@@ -143,9 +155,8 @@ const BitcoinStats = () => {
   };
 
   const calculateMVRV = () => {
-    // MVRV calculation is complex and requires precise realized cap data
-    // The free APIs don't provide accurate realized cap, so we'll show a placeholder
-    return 2.1; // Approximate current value based on market conditions
+    // Use real MVRV data from API
+    return mvrvData ? mvrvData.mvrv : 2.1; // Fallback to 2.1 if no data
   };
 
   const getMVRVColor = (value: number) => {
