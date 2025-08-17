@@ -112,14 +112,14 @@ const BitcoinStats = () => {
           .then(data => setBlockchainStats(data))
           .catch(err => console.warn('Blockchain stats fetch failed:', err)),
 
-        // MVRV data - Removing due to unreliable API
-        // fetch('https://bitcoin-data.com/v1/mvrv/1')
-        //   .then(response => response.json())
-        //   .then(data => setMvrvData(data))
-        //   .catch(err => {
-        //     console.warn('MVRV data fetch failed:', err);
-        //     setMvrvData(null);
-        //   })
+        // MVRV data
+        fetch('https://bitcoin-data.com/v1/mvrv/1')
+          .then(response => response.json())
+          .then(data => setMvrvData(data))
+          .catch(err => {
+            console.warn('MVRV data fetch failed:', err);
+            setMvrvData(null);
+          })
       ];
 
       await Promise.allSettled(promises);
