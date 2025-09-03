@@ -178,7 +178,10 @@ const BitcoinStats = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | undefined) => {
+    if (num === undefined || num === null || isNaN(num)) {
+      return '-';
+    }
     return num.toLocaleString();
   };
 
@@ -543,7 +546,7 @@ const BitcoinStats = () => {
                   <p className="text-xs text-muted-foreground">Total fees (sats)</p>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-foreground">{blockFeeData.medianfee}</div>
+                  <div className="text-lg font-semibold text-foreground">{blockFeeData.medianfee || '-'}</div>
                   <p className="text-xs text-muted-foreground">Median fee (sats/vB)</p>
                 </div>
               </div>
