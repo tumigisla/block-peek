@@ -19,6 +19,16 @@ interface BlockData {
   version: number;
 }
 
+interface BlockFeeData {
+  totalfee: number;
+  medianfee: number;
+  feerate_10: number;
+  feerate_25: number;
+  feerate_50: number;
+  feerate_75: number;
+  feerate_90: number;
+}
+
 interface MemPoolStats {
   count: number;
   vsize: number;
@@ -59,6 +69,7 @@ interface BlockchainStats {
 
 const BitcoinStats = () => {
   const [blockData, setBlockData] = useState<BlockData | null>(null);
+  const [blockFeeData, setBlockFeeData] = useState<BlockFeeData | null>(null);
   const [memPoolStats, setMemPoolStats] = useState<MemPoolStats | null>(null);
   const [bitcoinPrice, setBitcoinPrice] = useState<BitcoinPrice | null>(null);
   const [fearGreedIndex, setFearGreedIndex] = useState<FearGreedData | null>(null);
@@ -78,9 +89,19 @@ const BitcoinStats = () => {
         // Mempool.space APIs (usually reliable)
         fetch('https://mempool.space/api/blocks/tip/hash')
           .then(response => response.text())
-          .then(hash => fetch(`https://mempool.space/api/block/${hash}`))
-          .then(response => response.json())
-          .then(data => setBlockData(data))
+          .then(hash => {
+            // Fetch both block data and fee data
+            const blockPromise = fetch(`https://mempool.space/api/block/${hash}`)
+              .then(response => response.json())
+              .then(data => setBlockData(data));
+            
+            const feePromise = fetch(`https://mempool.space/api/block/${hash}/fees`)
+              .then(response => response.json())
+              .then(data => setBlockFeeData(data))
+              .catch(err => console.warn('Block fee data fetch failed:', err));
+            
+            return Promise.all([blockPromise, feePromise]);
+          })
           .catch(err => console.warn('Block data fetch failed:', err)),
         
         fetch('https://mempool.space/api/mempool')
@@ -431,83 +452,97 @@ const BitcoinStats = () => {
           </CardContent>
         </Card>
 
-        {/* Block Hash */}
+        {/* Latest Block Info - Hash & Time */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Latest Block Hash</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Latest Block</CardTitle>
             <Hash className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-mono break-all text-foreground flex-1 mr-2">
-                {blockData?.id ? formatBlockHash(blockData.id) : 
-                 blockData?.hash ? formatBlockHash(blockData.hash) : '-'}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-mono break-all text-foreground flex-1 mr-2">
+                  {blockData?.id ? formatBlockHash(blockData.id) : 
+                   blockData?.hash ? formatBlockHash(blockData.hash) : '-'}
+                </div>
+                {(blockData?.id || blockData?.hash) && (
+                  <button
+                    onClick={() => copyToClipboard(blockData?.id || blockData?.hash || '')}
+                    className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors"
+                    title="Copy full hash"
+                  >
+                    {copiedHash ? (
+                      <Check className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    )}
+                  </button>
+                )}
               </div>
-              {(blockData?.id || blockData?.hash) && (
-                <button
-                  onClick={() => copyToClipboard(blockData?.id || blockData?.hash || '')}
-                  className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors"
-                  title="Copy full hash"
-                >
-                  {copiedHash ? (
-                    <Check className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  )}
-                </button>
-              )}
+              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}</span>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Block identifier</p>
-            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
+            <p className="text-xs text-muted-foreground mt-2 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
-        {/* Transactions */}
+        {/* Block Activity - Transactions & Size */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Block Activity</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">{blockData ? formatNumber(blockData.tx_count) : '-'}</div>
-            <p className="text-xs text-muted-foreground mt-1">In latest block</p>
-            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
+            <div className="space-y-3">
+              <div>
+                <div className="text-2xl font-bold text-primary">{blockData ? formatNumber(blockData.tx_count) : '-'}</div>
+                <p className="text-xs text-muted-foreground">Transactions</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-semibold text-foreground">{blockData ? formatBytes(blockData.size) : '-'}</div>
+                  <p className="text-xs text-muted-foreground">Block size</p>
+                </div>
+                {blockData && (
+                  <Badge className={`text-xs ${getBlockSizeContext(blockData.size).bgColor} ${getBlockSizeContext(blockData.size).color} border-0`}>
+                    {getBlockSizeContext(blockData.size).label}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
-         {/* Block Size */}
+        {/* Block Fees */}
         <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Block Size</CardTitle>
-            <Database className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Block Fees</CardTitle>
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{blockData ? formatBytes(blockData.size) : '-'}</div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Block data size</p>
-              {blockData && (
-                <Badge className={`text-xs mt-1 ${getBlockSizeContext(blockData.size).bgColor} ${getBlockSizeContext(blockData.size).color} border-0`}>
-                  {getBlockSizeContext(blockData.size).label}
-                </Badge>
-              )}
-              <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
-            </div>
-          </CardContent>
-        </Card>
-
-
-        {/* Block Time */}
-        <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow-bitcoin transition-all duration-300 animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Block Time</CardTitle>
-            <Clock className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-medium text-foreground">
-              {blockData ? formatTime(blockData.timestamp || blockData.time) : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">When block was mined</p>
-            <p className="text-xs text-muted-foreground mt-1 opacity-70">via Mempool.space</p>
+            {blockFeeData ? (
+              <div className="space-y-3">
+                <div>
+                  <div className="text-2xl font-bold text-primary">{formatNumber(blockFeeData.totalfee)}</div>
+                  <p className="text-xs text-muted-foreground">Total fees (sats)</p>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-foreground">{blockFeeData.medianfee}</div>
+                  <p className="text-xs text-muted-foreground">Median fee (sats/vB)</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20">
+                <div className="text-center">
+                  <AlertCircle className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                  <div className="text-sm text-muted-foreground">Fee data unavailable</div>
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2 opacity-70">via Mempool.space</p>
           </CardContent>
         </Card>
 
