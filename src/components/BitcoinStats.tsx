@@ -105,12 +105,24 @@ const BitcoinStats = () => {
                   return response.json();
                 })
                 .then(feeData => {
+                  console.log('Mining fee API response:', feeData);
                   // The mining endpoint returns an array, we want the first (most recent) entry
                   if (feeData && feeData.length > 0) {
+                    console.log('Setting fee data from array:', feeData[0]);
                     setBlockFeeData(feeData[0]);
+                  } else if (feeData && typeof feeData === 'object') {
+                    // Maybe it's not an array but a direct object
+                    console.log('Setting fee data as object:', feeData);
+                    setBlockFeeData(feeData);
+                  } else {
+                    console.log('No fee data found, response was:', feeData);
+                    setBlockFeeData(null);
                   }
                 })
-                .catch(err => console.warn('Block fee data fetch failed:', err))
+                .catch(err => {
+                  console.warn('Block fee data fetch failed:', err);
+                  setBlockFeeData(null);
+                })
             );
             
             return Promise.all([blockPromise, feePromise]);
