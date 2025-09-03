@@ -93,12 +93,25 @@ const BitcoinStats = () => {
             // Fetch both block data and fee data
             const blockPromise = fetch(`https://mempool.space/api/block/${hash}`)
               .then(response => response.json())
-              .then(data => setBlockData(data));
+              .then(data => {
+                setBlockData(data);
+                return data; // Return data for the fee fetch
+              });
             
-            const feePromise = fetch(`https://mempool.space/api/block/${hash}/fees`)
-              .then(response => response.json())
-              .then(data => setBlockFeeData(data))
-              .catch(err => console.warn('Block fee data fetch failed:', err));
+            const feePromise = blockPromise.then(data => 
+              fetch(`https://mempool.space/api/v1/mining/blocks/fees/${data.height}`)
+                .then(response => {
+                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                  return response.json();
+                })
+                .then(feeData => {
+                  // The mining endpoint returns an array, we want the first (most recent) entry
+                  if (feeData && feeData.length > 0) {
+                    setBlockFeeData(feeData[0]);
+                  }
+                })
+                .catch(err => console.warn('Block fee data fetch failed:', err))
+            );
             
             return Promise.all([blockPromise, feePromise]);
           })
